@@ -5,30 +5,33 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Wort · 德语学习</title>
 <style>
-:root{--bg:#f6f7f2;--ink:#293f35;--green:#38664e;--line:#dce3d9;--soft:#e9efe5}
+:root{--bg:#f6f7f2;--ink:#293f35;--green:#38664e;--line:#dce3d9;--soft:#e9efe5;--muted:#748074}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 system-ui,sans-serif}
-header,main{max-width:900px;margin:auto;padding:24px}
+header,main{max-width:960px;margin:auto;padding:24px}
 header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
 .logo{font:bold 30px Georgia,serif}
-nav{display:flex;gap:6px}
-button,input,textarea{font:inherit}
+nav,.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button,input,textarea,select{font:inherit}
 button{cursor:pointer;padding:9px 16px;border:1px solid var(--line);border-radius:9px;background:white;color:var(--ink)}
 button:hover{background:var(--soft)}
 button:disabled{opacity:.5;cursor:default}
 .primary{background:var(--green);color:white}
-nav button{border:0;background:transparent}
-nav button.active{background:var(--soft)}
-main{padding-top:36px}
+.primary:hover{background:#28523d}
+.danger{color:#a44035}
+nav{gap:4px}
+nav button{border:0;background:transparent;padding:8px 12px}
+nav button.active,.filters button.active{background:var(--soft)}
+main{padding-top:32px}
 h1{font-size:30px;margin:5px 0}
-h2{font-size:20px}
+h2{font-size:20px;margin:0 0 12px}
 p{margin:8px 0}
-small,.muted{color:#748074}
+small,.muted{color:var(--muted)}
 .card{padding:24px;background:white;border:1px solid var(--line);border-radius:16px;margin:22px 0}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .between{justify-content:space-between}
-input,textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:9px;background:white;color:var(--ink)}
+input,textarea,select{width:100%;padding:11px;border:1px solid var(--line);border-radius:9px;background:white;color:var(--ink)}
 textarea{min-height:85px;resize:vertical}
+input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid #92b49b;outline-offset:2px}
 label{display:block;margin:14px 0 6px;font-size:13px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .hide{display:none!important}
@@ -37,30 +40,42 @@ label{display:block;margin:14px 0 6px;font-size:13px}
 .study{text-align:center;padding:35px 24px}
 .prompt{font-size:30px;margin:28px 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .feedback{background:var(--soft);padding:18px;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere;margin:20px 0}
-.item{padding:16px 0;border-bottom:1px solid var(--line)}
+.item{padding:18px 0;border-bottom:1px solid var(--line);display:flex;gap:13px;align-items:flex-start}
 .item:last-child{border:0}
+.item-content{flex:1;min-width:0}
 .item strong{font-size:19px}
 .item p,.item strong{white-space:pre-wrap;overflow-wrap:anywhere}
+.check{width:18px;height:18px;flex-shrink:0;margin-top:7px;accent-color:var(--green)}
 .tools button{padding:4px 10px;font-size:12px}
-.chat{max-height:420px;overflow:auto}
+.badge{display:inline-block;font-size:11px;background:var(--soft);border-radius:20px;padding:1px 9px;margin-left:8px;vertical-align:middle}
+.chat{max-height:440px;overflow:auto}
 .msg{padding:14px;background:var(--bg);border-radius:10px;margin:12px 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .user{background:var(--soft)}
-summary{cursor:pointer}
-footer{text-align:center;color:#748074;font-size:12px;padding:30px}
-#notice{color:#a34d28;min-height:26px}
+summary{cursor:pointer;color:var(--green)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:30px}
+#notice{position:sticky;top:8px;background:var(--ink);color:white;padding:10px 16px;border-radius:10px;z-index:10}
+.filters{margin:18px 0}
+.filters button{padding:7px 15px}
+.inline-check{display:flex;gap:8px;align-items:center;margin:0}
+.inline-check input{width:17px;height:17px;accent-color:var(--green)}
+.lookup-result{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--bg);padding:16px;border-radius:10px;margin-top:16px}
+a{color:var(--green)}
 @media(max-width:600px){
 header,main{padding:18px}
-nav button{padding:7px 9px}
+.logo{font-size:27px}
+nav button{padding:7px 8px}
 .grid{grid-template-columns:1fr}
-h1{font-size:26px}
+h1{font-size:25px}
 .card{padding:20px}
+.stats{gap:25px}
+.prompt{font-size:26px}
 }
 </style>
 </head>
 <body>
 <header>
 <div class="logo">Wort.</div>
-<nav>
+<nav aria-label="主导航">
 <button class="active" data-tab="review">今日复习</button>
 <button data-tab="words">词句本</button>
 <button data-tab="ai">AI 答疑</button>
@@ -68,12 +83,13 @@ h1{font-size:26px}
 </header>
 
 <main>
-<div id="notice" role="status" aria-live="polite"></div>
+<div id="notice" class="hide" role="status" aria-live="polite"></div>
 
 <section id="review">
 <small>EIN BISSCHEN, JEDEN TAG.</small>
 <h1>每天一点，让德语留下来。</h1>
 <p class="muted">记录想学的表达，用回忆巩固记忆。</p>
+
 <div class="stats">
 <div><strong id="dueCount">0</strong><small>待复习方向</small></div>
 <div><strong id="wordCount">0</strong><small>收藏词句</small></div>
@@ -83,7 +99,16 @@ h1{font-size:26px}
 <div id="welcome" class="card study">
 <h2>给学习留一点安静的时间</h2>
 <p class="muted" id="welcomeText">从第一个词、第一句话开始。</p>
-<div class="row" style="justify-content:center;margin-top:24px">
+<div style="max-width:280px;margin:18px auto">
+<label for="reviewCategory">本轮复习范围</label>
+<select id="reviewCategory">
+<option value="all">全部类别</option>
+<option value="word">单词</option>
+<option value="phrase">短语</option>
+<option value="sentence">句子</option>
+</select>
+</div>
+<div class="row" style="justify-content:center;margin-top:20px">
 <button id="start" class="primary">开始复习</button>
 <button id="addFromReview">添加词句</button>
 <button id="demo">载入示例</button>
@@ -96,7 +121,6 @@ h1{font-size:26px}
 </div>
 <div id="prompt" class="prompt"></div>
 <button id="listen">朗读德语</button>
-
 <form id="answerForm" style="max-width:550px;margin:20px auto">
 <label for="answer">写下你的答案</label>
 <input id="answer" autocomplete="off">
@@ -105,7 +129,6 @@ h1{font-size:26px}
 <button type="button" id="reveal">想不起来</button>
 </div>
 </form>
-
 <div id="result" class="hide">
 <div id="feedback" class="feedback"></div>
 <p id="studyNote" class="muted"></p>
@@ -113,11 +136,10 @@ h1{font-size:26px}
 <button id="again">需要再练</button>
 <button id="remember" class="primary">已掌握，继续</button>
 </div>
-<small>比对仅供参考；近义表达可以自行判断。</small>
+<small>比对仅供参考，近义表达可以自行判断。</small>
 </div>
 <button id="stop" style="margin-top:22px">结束本轮</button>
 </div>
-
 <small>复习间隔：10 分钟 → 1 天 → 3 天 → 7 天 → 14 天 → 30 天。两个翻译方向独立记录。</small>
 </section>
 
@@ -127,65 +149,122 @@ h1{font-size:26px}
 <button id="newWord" class="primary">＋ 添加词句</button>
 </div>
 
+<details class="card" id="lookupPanel">
+<summary>联网搜词 / AI 释义</summary>
+<p class="muted"><small>词典查询会打开外部网站；AI 释义需要先在“AI 答疑”配置服务。</small></p>
+<form id="lookupForm">
+<label for="lookupText">德语词语或表达</label>
+<input id="lookupText" required maxlength="2000" placeholder="例如：Entscheidung">
+<div class="row" style="margin-top:15px">
+<button class="primary">查 DWDS</button>
+<button type="button" id="wiktionary">维基词典</button>
+<button type="button" id="pons">PONS 德中</button>
+<button type="button" id="aiLookup">AI 释义</button>
+</div>
+</form>
+<p class="muted"><small>DWDS 适合德语释义和用法；PONS 适合德中查询。AI 释义不等于实时词典检索。</small></p>
+<div id="lookupResult" class="lookup-result hide" aria-live="polite"></div>
+<button id="useLookup" class="hide" style="margin-top:12px">填入录入表单</button>
+</details>
+
 <form id="wordForm" class="card hide">
 <h2 id="formTitle">添加词句</h2>
+<label for="category">类别</label>
+<select id="category">
+<option value="word">单词</option>
+<option value="phrase">短语</option>
+<option value="sentence">句子</option>
+</select>
 <div class="grid">
 <div>
-<label for="de">德语单词 / 短语 / 句子 *</label>
-<textarea id="de" required maxlength="2000"
-placeholder="die Entscheidung, -en"></textarea>
+<label for="de">德语 *</label>
+<textarea id="de" required maxlength="2000" placeholder="die Entscheidung, -en"></textarea>
 </div>
 <div>
 <label for="zh">中文含义 *</label>
-<textarea id="zh" required maxlength="2000"
-placeholder="决定；决策"></textarea>
+<textarea id="zh" required maxlength="2000" placeholder="决定；决策"></textarea>
 </div>
 </div>
 <label for="note">例句或用法（选填）</label>
-<textarea id="note" maxlength="4000"
-placeholder="eine Entscheidung treffen — 做出决定"></textarea>
+<textarea id="note" maxlength="4000" placeholder="eine Entscheidung treffen — 做出决定"></textarea>
 <div class="row" style="margin-top:16px">
 <button class="primary">保存</button>
 <button id="cancel" type="button">取消</button>
 </div>
+<small>修改德语或中文后，会重置该条双向复习进度；仅修改分类或笔记不会重置。</small>
 </form>
 
-<input id="search" aria-label="搜索词句" placeholder="搜索德语、中文或笔记…" style="margin-top:22px">
+<div class="row filters" id="filters" aria-label="类别筛选">
+<button data-category="all" class="active">全部</button>
+<button data-category="word">单词</button>
+<button data-category="phrase">短语</button>
+<button data-category="sentence">句子</button>
+</div>
+<input id="search" aria-label="搜索词句" placeholder="搜索当前类别的德语、中文或笔记…">
+
+<div class="row between" style="margin-top:18px">
+<label class="inline-check">
+<input id="selectAll" type="checkbox">选择当前筛选结果
+</label>
+<div class="row">
+<small id="selectedCount">已选 0 条</small>
+<button id="batchDelete" class="danger" disabled>删除所选</button>
+</div>
+</div>
 <div id="list" class="card"></div>
 <div class="row">
 <button id="export">导出备份</button>
 <button id="import">导入备份</button>
 <input id="file" type="file" accept=".json,application/json" class="hide">
 </div>
-<p class="muted"><small>学习记录保存在当前浏览器，不会自动同步到 GitHub。请定期导出备份。</small></p>
+<p class="muted"><small>学习记录只保存在当前浏览器，不会自动同步到 GitHub。请定期导出备份。</small></p>
 </section>
 
 <section id="ai" class="hide">
 <h1>卡住的地方，一起弄明白。</h1>
 <p class="muted">词义辨析、语法和句子纠错，都可以问。</p>
 
-<details id="settings" class="card">
-<summary>连接 AI 服务</summary>
-<p class="muted"><small>支持 OpenAI 兼容 Chat Completions 接口。需要自行提供服务及密钥，服务必须允许浏览器跨域访问。</small></p>
+<details id="settings" class="card" open>
+<summary>AI 服务设置</summary>
+<label for="provider">服务商</label>
+<select id="provider">
+<option value="deepseek">DeepSeek 官方</option>
+<option value="custom">其他 OpenAI 兼容服务</option>
+</select>
 <label for="endpoint">完整 HTTPS API 地址</label>
-<input id="endpoint" type="url" placeholder="https://api.example.com/v1/chat/completions">
+<input id="endpoint" type="url">
 <label for="model">模型名称</label>
-<input id="model" placeholder="服务商支持的模型名称">
+<input id="model" list="models" placeholder="deepseek-chat">
+<datalist id="models">
+<option value="deepseek-chat">
+<option value="deepseek-reasoner">
+</datalist>
+<p class="muted"><small>DeepSeek 通常使用 deepseek-chat；复杂语法问题可选 deepseek-reasoner，响应可能较慢。可用模型以服务商账户实际支持为准。</small></p>
 <label for="key">API Key</label>
-<input id="key" type="password" autocomplete="off" placeholder="仅保留在当前页面内存">
-<p class="muted"><small>问题和上下文会发送到指定服务，请确认地址可信。密钥不写入本地存储或备份。联网答疑不代表模型具备实时网页搜索能力。</small></p>
+<input id="key" type="password" autocomplete="off" placeholder="输入你自己的 API 密钥">
+<div class="row" style="margin-top:15px">
+<button id="saveSettings">保存地址与模型</button>
+<button id="forgetKey">清除密钥</button>
+<a href="https://platform.deepseek.com/" target="_blank" rel="noopener noreferrer">DeepSeek 开放平台</a>
+</div>
+<p class="muted"><small>密钥仅保留在当前页面内存，刷新后需重新输入，不进入备份。地址和模型可以本地保存。请求会把问题及上下文发送给指定服务；API 可能单独计费。</small></p>
+<p class="muted"><small>浏览器直连要求服务允许跨域。API 模型不自动具备网页搜索能力，实时搜词请使用词句本中的词典入口。</small></p>
 </details>
 
 <div class="card">
-<div class="row between"><h2>德语学习助手</h2><button id="clearChat">清空对话</button></div>
+<div class="row between">
+<h2>德语学习助手</h2><button id="clearChat">清空对话</button>
+</div>
 <div id="chat" class="chat" role="log" aria-live="polite"></div>
 <form id="askForm">
 <label for="question">你的问题</label>
-<textarea id="question" required maxlength="6000"
-placeholder="weil 和 denn 有什么区别？请用 A2 水平举例。"></textarea>
+<textarea id="question" required maxlength="6000" placeholder="weil 和 denn 有什么区别？请用 A2 水平举例。"></textarea>
 <div class="row between" style="margin-top:16px">
 <small>AI 回答可能有误，请核实重要用法。</small>
+<div class="row">
+<button type="button" id="cancelAI" class="hide">停止请求</button>
 <button id="send" class="primary">发送问题</button>
+</div>
 </div>
 </form>
 </div>
@@ -196,22 +275,39 @@ placeholder="weil 和 denn 有什么区别？请用 A2 水平举例。"></textar
 
 <script>
 'use strict';
+
 const $=id=>document.getElementById(id);
 const KEY='wort-simple-v1';
+const SETTINGS='wort-ai-settings-v2';
+const names={word:'单词',phrase:'短语',sentence:'句子'};
 const intervals=[600000,86400000,259200000,604800000,1209600000,2592000000];
+
 let data={words:[],history:[]};
 let editing=null,queue=[],current=null,total=0,completed=0;
-let chat=[],busy=false;
+let categoryFilter='all',selected=new Set();
+let chat=[],busy=false,activeController=null,lookupDraft=null;
+let storageBlocked=false;
 
 function notify(text){
   $('notice').textContent=text;
+  $('notice').classList.remove('hide');
+  clearTimeout(notify.timer);
+  notify.timer=setTimeout(()=>$('notice').classList.add('hide'),6500);
 }
+
+function uid(){
+  return globalThis.crypto?.randomUUID
+    ?crypto.randomUUID()
+    :Date.now().toString(36)+Math.random().toString(36).slice(2);
+}
+
 function valid(d){
   return d&&Array.isArray(d.words)&&d.words.length<=10000
     &&d.words.every(w=>w&&typeof w.id==='string'
       &&typeof w.de==='string'&&w.de.trim()&&w.de.length<=2000
       &&typeof w.zh==='string'&&w.zh.trim()&&w.zh.length<=2000
       &&typeof w.note==='string'&&w.note.length<=4000
+      &&(w.category===undefined||Object.hasOwn(names,w.category))
       &&['dz','zd'].every(k=>w[k]
         &&Number.isInteger(w[k].level)
         &&w[k].level>=0&&w[k].level<=6
@@ -221,32 +317,54 @@ function valid(d){
     &&d.history.every(h=>h&&Number.isFinite(h.time)
       &&typeof h.ok==='boolean');
 }
+
+function migrate(d){
+  return {
+    words:d.words.map(w=>({
+      id:w.id,de:w.de,zh:w.zh,note:w.note,
+      category:w.category||'word',
+      dz:{level:w.dz.level,due:w.dz.due},
+      zd:{level:w.zd.level,due:w.zd.due}
+    })),
+    history:d.history.map(h=>({time:h.time,ok:h.ok}))
+  };
+}
+
 try{
-  const raw=localStorage.getItem(KEY);
+  // 同时兼容最初两个版本使用的数据键。
+  const raw=localStorage.getItem(KEY)
+    ||localStorage.getItem('wort-data-v1');
   if(raw){
     const d=JSON.parse(raw);
     if(!valid(d))throw Error();
-    data=d;
+    data=migrate(d);
   }
 }catch{
-  notify('无法读取本地数据，请从备份恢复。');
+  storageBlocked=true;
+  notify('本地数据读取异常，已阻止覆盖原数据。请先从备份恢复。');
 }
+
 function save(){
+  if(storageBlocked){
+    notify('原数据读取异常，本次修改只在内存中，请先导出备份。');
+    return false;
+  }
   try{
     localStorage.setItem(KEY,JSON.stringify(data));
+    return true;
   }catch{
-    notify('保存失败：浏览器存储不可用或已满，请导出备份。');
+    notify('保存失败：浏览器存储不可用或已满，请立即导出备份。');
+    return false;
   }
 }
-function uid(){
-  return globalThis.crypto?.randomUUID
-    ?crypto.randomUUID()
-    :Date.now().toString(36)+Math.random().toString(36).slice(2);
+
+function makeWord(de,zh,note='',category='word'){
+  return {
+    id:uid(),de,zh,note,category,
+    dz:{level:0,due:0},zd:{level:0,due:0}
+  };
 }
-function makeWord(de,zh,note=''){
-  return {id:uid(),de,zh,note,
-    dz:{level:0,due:0},zd:{level:0,due:0}};
-}
+
 function showTab(tab){
   for(const id of ['review','words','ai']){
     $(id).classList.toggle('hide',id!==tab);
@@ -256,77 +374,169 @@ function showTab(tab){
   });
   render();
 }
+
 document.querySelectorAll('[data-tab]').forEach(b=>{
   b.onclick=()=>showTab(b.dataset.tab);
 });
-function due(){
-  return data.words.flatMap(w=>
-    ['dz','zd'].filter(k=>w[k].due<=Date.now())
-      .map(k=>({id:w.id,k,due:w[k].due}))
-  ).sort((a,b)=>a.due-b.due);
+
+function due(category='all'){
+  return data.words
+    .filter(w=>category==='all'||w.category===category)
+    .flatMap(w=>['dz','zd']
+      .filter(k=>w[k].due<=Date.now())
+      .map(k=>({id:w.id,k,due:w[k].due})))
+    .sort((a,b)=>a.due-b.due);
 }
+
 function render(){
-  const n=due().length;
-  $('dueCount').textContent=n;
+  const count=due($('reviewCategory').value).length;
+  $('dueCount').textContent=count;
   $('wordCount').textContent=data.words.length;
   $('todayCount').textContent=data.history.filter(h=>
     new Date(h.time).toDateString()===new Date().toDateString()
   ).length;
-  $('start').disabled=n===0;
+  $('start').disabled=count===0;
   $('demo').classList.toggle('hide',data.words.length>0);
   $('welcomeText').textContent=!data.words.length
     ?'从第一个词、第一句话开始。'
-    :n?'今天的复习已准备好，开始一次专注的回忆吧。'
-      :'当前复习已完成，下次到期后再来巩固。';
+    :count?'选定范围的复习已准备好，开始一次专注的回忆吧。'
+      :'当前范围暂无到期词句，可以切换类别或添加新词。';
   renderList();
 }
+
+$('reviewCategory').onchange=render;
+
 function openForm(w){
   editing=w?.id||null;
   $('wordForm').classList.remove('hide');
   $('formTitle').textContent=w?'编辑词句':'添加词句';
   for(const k of ['de','zh','note'])$(k).value=w?.[k]||'';
+  $('category').value=w?.category
+    ||(categoryFilter==='all'?'word':categoryFilter);
   $('de').focus();
 }
+
 $('newWord').onclick=()=>openForm();
+
 $('addFromReview').onclick=()=>{
-  showTab('words');openForm();
+  showTab('words');
+  openForm();
 };
-$('cancel').onclick=()=>$('wordForm').classList.add('hide');
+
+$('cancel').onclick=()=>{
+  editing=null;
+  $('wordForm').classList.add('hide');
+};
+
 $('wordForm').onsubmit=e=>{
   e.preventDefault();
-  const de=$('de').value.trim(),zh=$('zh').value.trim();
+  const de=$('de').value.trim();
+  const zh=$('zh').value.trim();
   const note=$('note').value.trim();
+  const category=$('category').value;
   if(!de||!zh)return notify('请填写德语和中文。');
-  if(data.words.some(w=>w.id!==editing&&w.de===de&&w.zh===zh)){
-    return notify('这条词句已经存在。');
+  if(data.words.some(w=>w.id!==editing
+    &&w.de===de&&w.zh===zh&&w.category===category)){
+    return notify('当前类别中已经存在这条词句。');
+  }
+  if(data.words.length>=10000&&!editing){
+    return notify('最多保存 10000 条词句。');
   }
   if(editing){
     const w=data.words.find(w=>w.id===editing);
-    Object.assign(w,{de,zh,note,
-      dz:{level:0,due:0},zd:{level:0,due:0}});
+    if(!w)return notify('该词句已被删除，请重新添加。');
+    const changed=w.de!==de||w.zh!==zh;
+    Object.assign(w,{de,zh,note,category});
+    if(changed){
+      w.dz={level:0,due:0};
+      w.zd={level:0,due:0};
+    }
   }else{
-    data.words.push(makeWord(de,zh,note));
+    data.words.push(makeWord(de,zh,note,category));
   }
-  save();
+  const saved=save();
+  editing=null;
   $('wordForm').classList.add('hide');
+  selected.clear();
   render();
-  notify('已保存，并安排双向复习。');
+  if(saved)notify('已保存。');
 };
+
+function filteredWords(){
+  const q=$('search').value.trim().toLocaleLowerCase();
+  return data.words.filter(w=>
+    (categoryFilter==='all'||w.category===categoryFilter)
+    &&[w.de,w.zh,w.note].some(t=>t.toLocaleLowerCase().includes(q)));
+}
+
+function updateSelection(){
+  const visible=filteredWords();
+  const count=visible.filter(w=>selected.has(w.id)).length;
+  $('selectAll').checked=visible.length>0&&count===visible.length;
+  $('selectAll').indeterminate=count>0&&count<visible.length;
+  $('selectAll').disabled=visible.length===0;
+  $('selectedCount').textContent='已选 '+selected.size+' 条';
+  $('batchDelete').disabled=selected.size===0;
+}
+
+function deleteWords(ids){
+  const count=data.words.filter(w=>ids.has(w.id)).length;
+  if(!count||!confirm(`确定删除 ${count} 条词句及其复习进度？此操作无法撤销。`)){
+    return;
+  }
+  data.words=data.words.filter(w=>!ids.has(w.id));
+  if(editing&&ids.has(editing)){
+    editing=null;
+    $('wordForm').classList.add('hide');
+  }
+  selected.clear();
+  if(current&&ids.has(current.id))stop();
+  const saved=save();
+  render();
+  if(saved)notify('已删除 '+count+' 条词句。');
+}
+
 function renderList(){
   const box=$('list');
   box.replaceChildren();
-  const q=$('search').value.trim().toLocaleLowerCase();
-  const words=data.words.filter(w=>
-    [w.de,w.zh,w.note].some(t=>t.toLocaleLowerCase().includes(q)));
+
+  document.querySelectorAll('#filters button').forEach(b=>{
+    const category=b.dataset.category;
+    const count=data.words.filter(w=>
+      category==='all'||w.category===category).length;
+    b.textContent=(category==='all'?'全部':names[category])+' '+count;
+    b.classList.toggle('active',category===categoryFilter);
+  });
+
+  const words=filteredWords();
   if(!words.length){
-    box.textContent=q?'没有找到匹配词句。':'还没有词句，添加第一个吧。';
+    box.textContent='当前筛选条件下暂无词句。';
+    updateSelection();
     return;
   }
+
   for(const w of words){
     const item=document.createElement('div');
     item.className='item';
+
+    const check=document.createElement('input');
+    check.type='checkbox';
+    check.className='check';
+    check.checked=selected.has(w.id);
+    check.setAttribute('aria-label','选择 '+w.de);
+    check.onchange=()=>{
+      if(check.checked)selected.add(w.id);
+      else selected.delete(w.id);
+      updateSelection();
+    };
+
+    const body=document.createElement('div');
+    body.className='item-content';
     const title=document.createElement('strong');
     title.textContent=w.de;
+    const badge=document.createElement('span');
+    badge.className='badge';
+    badge.textContent=names[w.category];
     const meaning=document.createElement('p');
     meaning.textContent=w.zh;
     const note=document.createElement('p');
@@ -336,50 +546,89 @@ function renderList(){
     progress.textContent=`德中 ${w.dz.level}/6 · 中德 ${w.zd.level}/6`;
     const tools=document.createElement('div');
     tools.className='row tools';
+
     const actions=[
       ['朗读',()=>speak(w.de)],
+      ['查词',()=>{
+        $('lookupPanel').open=true;
+        $('lookupText').value=w.de;
+        $('lookupPanel').scrollIntoView({behavior:'smooth',block:'start'});
+      }],
       ['编辑',()=>openForm(w)],
-      ['删除',()=>{
-        if(!confirm('删除这条词句和复习进度？'))return;
-        data.words=data.words.filter(x=>x.id!==w.id);
-        save();render();
-      }]
+      ['删除',()=>deleteWords(new Set([w.id]))]
     ];
     for(const [label,fn] of actions){
       const b=document.createElement('button');
-      b.textContent=label;b.onclick=fn;tools.append(b);
+      b.textContent=label;
+      b.onclick=fn;
+      tools.append(b);
     }
-    item.append(title,meaning,note,progress,tools);
+    body.append(title,badge,meaning,note,progress,tools);
+    item.append(check,body);
     box.append(item);
   }
+  updateSelection();
 }
-$('search').oninput=renderList;
+
+document.querySelectorAll('#filters button').forEach(b=>{
+  b.onclick=()=>{
+    categoryFilter=b.dataset.category;
+    selected.clear();
+    renderList();
+  };
+});
+
+$('search').oninput=()=>{
+  selected.clear();
+  renderList();
+};
+
+$('selectAll').onchange=()=>{
+  for(const w of filteredWords()){
+    if($('selectAll').checked)selected.add(w.id);
+    else selected.delete(w.id);
+  }
+  renderList();
+};
+
+$('batchDelete').onclick=()=>deleteWords(new Set(selected));
+
 $('demo').onclick=()=>{
   data.words.push(
-    makeWord('der Alltag','日常生活','Im Alltag spreche ich Deutsch.'),
+    makeWord('der Alltag','日常生活',
+      'Im Alltag spreche ich Deutsch.','word'),
+    makeWord('die Entscheidung, -en','决定',
+      'eine Entscheidung treffen','word'),
     makeWord('sich auf etwas freuen','期待某事',
-      'Ich freue mich auf das Wochenende.'),
-    makeWord('die Entscheidung, -en','决定','eine Entscheidung treffen'),
-    makeWord('Übung macht den Meister.','熟能生巧。'),
+      'Ich freue mich auf das Wochenende.','phrase'),
+    makeWord('Übung macht den Meister.','熟能生巧。','','sentence'),
     makeWord('Könnten Sie das bitte wiederholen?',
-      '您能再重复一遍吗？','礼貌请求')
+      '您能再重复一遍吗？','礼貌请求','sentence')
   );
-  save();render();
+  save();
+  render();
 };
+
 $('start').onclick=()=>{
-  queue=due();total=queue.length;completed=0;
+  queue=due($('reviewCategory').value);
+  total=queue.length;
+  completed=0;
   $('welcome').classList.add('hide');
   $('study').classList.remove('hide');
   next();
 };
+
 function next(){
   current=queue.shift();
   if(!current){
-    stop();notify('本轮复习完成！');return;
+    stop();
+    notify('本轮复习完成！');
+    return;
   }
   const w=data.words.find(w=>w.id===current.id);
   if(!w){next();return;}
-  $('direction').textContent=current.k==='dz'?'DE → 中文':'中文 → DE';
+  $('direction').textContent=
+    (current.k==='dz'?'DE → 中文':'中文 → DE')+' · '+names[w.category];
   $('progress').textContent=`${completed+1} / ${total}`;
   $('prompt').textContent=current.k==='dz'?w.de:w.zh;
   $('listen').classList.toggle('hide',current.k!=='dz');
@@ -388,11 +637,13 @@ function next(){
   $('result').classList.add('hide');
   $('answer').focus();
 }
+
 function normalize(s){
   return s.normalize('NFC').trim().replace(/\s+/g,' ')
     .replace(/[。！？.!?]+$/u,'');
 }
-function check(reveal){
+
+function checkAnswer(reveal){
   const w=data.words.find(w=>w.id===current?.id);
   if(!w)return stop();
   const expected=current.k==='dz'?w.zh:w.de;
@@ -407,14 +658,17 @@ function check(reveal){
   $('answerForm').classList.add('hide');
   $('result').classList.remove('hide');
 }
+
 $('answerForm').onsubmit=e=>{
   e.preventDefault();
   if(!$('answer').value.trim()){
     return notify('请先写下答案，或点击“想不起来”。');
   }
-  check(false);
+  checkAnswer(false);
 };
-$('reveal').onclick=()=>check(true);
+
+$('reveal').onclick=()=>checkAnswer(true);
+
 function grade(ok){
   if(!current)return;
   const w=data.words.find(w=>w.id===current.id);
@@ -430,30 +684,39 @@ function grade(ok){
     data.history.push({time:Date.now(),ok});
     save();
   }
-  completed++;next();render();
+  completed++;
+  next();
+  render();
 }
+
 $('again').onclick=()=>grade(false);
 $('remember').onclick=()=>grade(true);
+
 function stop(){
   current=null;
+  queue=[];
   $('study').classList.add('hide');
   $('welcome').classList.remove('hide');
   render();
 }
 $('stop').onclick=stop;
+
 function speak(text){
   if(!('speechSynthesis' in window)){
     return notify('此浏览器不支持语音朗读。');
   }
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
-  u.lang='de-DE';u.rate=.85;
+  u.lang='de-DE';
+  u.rate=.85;
   speechSynthesis.speak(u);
 }
+
 $('listen').onclick=()=>{
   const w=data.words.find(w=>w.id===current?.id);
   if(w)speak(w.de);
 };
+
 $('export').onclick=()=>{
   const blob=new Blob([JSON.stringify(data,null,2)],
     {type:'application/json'});
@@ -464,7 +727,9 @@ $('export').onclick=()=>{
   a.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
+
 $('import').onclick=()=>$('file').click();
+
 $('file').onchange=async()=>{
   const file=$('file').files[0];
   if(!file)return;
@@ -473,13 +738,188 @@ $('file').onchange=async()=>{
     const d=JSON.parse(await file.text());
     if(!valid(d))throw Error();
     if(!confirm('导入会替换当前词句和学习进度，是否继续？'))return;
-    data=d;save();stop();render();notify('备份已导入。');
+    const imported=migrate(d);
+    // 先确认备份可写入，避免内存替换成功却未保存。
+    localStorage.setItem(KEY,JSON.stringify(imported));
+    data=imported;
+    storageBlocked=false;
+    selected.clear();
+    editing=null;
+    $('wordForm').classList.add('hide');
+    stop();
+    notify('备份已导入。');
   }catch{
-    notify('导入失败，请选择有效的 Wort 备份文件（不超过 20 MB）。');
+    notify('导入失败：备份格式无效、文件超过 20 MB，或浏览器存储不可用。');
   }finally{
     $('file').value='';
   }
 };
+
+// 联网词典：直接打开词典的正式查询页面，不依赖密钥。
+function lookupQuery(){
+  const q=$('lookupText').value.trim();
+  if(!q)notify('请先输入要查询的德语。');
+  return q;
+}
+
+function openDictionary(type){
+  const q=lookupQuery();
+  if(!q)return;
+  let url;
+  if(type==='dwds'){
+    url='https://www.dwds.de/wb/'+encodeURIComponent(q);
+  }else if(type==='wiki'){
+    url='https://de.wiktionary.org/w/index.php?search='+encodeURIComponent(q);
+  }else{
+    url='https://de.pons.com/%C3%BCbersetzung/deutsch-chinesisch/'
+      +encodeURIComponent(q);
+  }
+  window.open(url,'_blank','noopener,noreferrer');
+}
+
+$('lookupForm').onsubmit=e=>{
+  e.preventDefault();
+  openDictionary('dwds');
+};
+$('wiktionary').onclick=()=>openDictionary('wiki');
+$('pons').onclick=()=>openDictionary('pons');
+
+// DeepSeek 和兼容 API。
+function providerDefaults(){
+  if($('provider').value==='deepseek'){
+    $('endpoint').value='https://api.deepseek.com/chat/completions';
+    $('model').value='deepseek-chat';
+  }else{
+    $('endpoint').value='';
+    $('model').value='';
+  }
+}
+
+$('provider').onchange=()=>{
+  providerDefaults();
+  // 切换服务商时不将旧密钥带给新的服务。
+  $('key').value='';
+  chat=[];
+  $('chat').replaceChildren();
+  notify('已切换服务，请重新填写对应密钥。');
+};
+
+providerDefaults();
+
+try{
+  const saved=JSON.parse(localStorage.getItem(SETTINGS)||'null');
+  if(saved&&['deepseek','custom'].includes(saved.provider)
+    &&typeof saved.endpoint==='string'
+    &&typeof saved.model==='string'){
+    $('provider').value=saved.provider;
+    $('endpoint').value=saved.endpoint;
+    $('model').value=saved.model;
+  }
+}catch{}
+
+$('saveSettings').onclick=()=>{
+  try{
+    const url=new URL($('endpoint').value.trim());
+    if(url.protocol!=='https:'||url.username||url.password)throw Error();
+    if($('provider').value==='deepseek'&&url.hostname!=='api.deepseek.com'){
+      return notify('DeepSeek 官方模式只允许 api.deepseek.com，请修正地址或切换其他服务。');
+    }
+    if(!$('model').value.trim())return notify('请填写模型名称。');
+    localStorage.setItem(SETTINGS,JSON.stringify({
+      provider:$('provider').value,
+      endpoint:url.href,
+      model:$('model').value.trim()
+    }));
+    notify('已保存服务地址和模型；密钥未保存。');
+  }catch{
+    notify('保存失败，请检查 HTTPS 地址或浏览器存储权限。');
+  }
+};
+
+$('forgetKey').onclick=()=>{
+  $('key').value='';
+  notify('密钥已从当前页面清除。');
+};
+
+function apiConfig(){
+  let url;
+  try{
+    url=new URL($('endpoint').value.trim());
+    if(url.protocol!=='https:'||url.username||url.password)throw Error();
+  }catch{
+    throw Error('请在 AI 服务设置中填写完整 HTTPS API 地址。');
+  }
+  if($('provider').value==='deepseek'&&url.hostname!=='api.deepseek.com'){
+    throw Error('DeepSeek 官方模式的域名必须是 api.deepseek.com。');
+  }
+  const key=$('key').value.trim();
+  const model=$('model').value.trim();
+  if(!key||!model)throw Error('请在 AI 服务设置中填写模型和 API Key。');
+  return {url:url.href,key,model};
+}
+
+function setBusy(value){
+  busy=value;
+  $('send').disabled=value;
+  $('aiLookup').disabled=value;
+  $('clearChat').disabled=value;
+  $('provider').disabled=value;
+  $('cancelAI').classList.toggle('hide',!value);
+}
+
+function friendlyError(err){
+  if(err.name==='AbortError')return '请求已停止或超时，请稍后重试。';
+  if(err instanceof TypeError){
+    return '网络请求失败：请检查网络、地址和服务商跨域设置。';
+  }
+  return err.message||'请求失败，请稍后重试。';
+}
+
+async function requestAI(messages,config){
+  activeController=new AbortController();
+  const timer=setTimeout(()=>activeController?.abort(),180000);
+  try{
+    const response=await fetch(config.url,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+config.key
+      },
+      signal:activeController.signal,
+      body:JSON.stringify({
+        model:config.model,
+        stream:false,
+        messages
+      })
+    });
+    if(!response.ok){
+      const tips={
+        400:'请求参数或模型不受支持',
+        401:'密钥无效，请重新检查',
+        402:'账户余额不足',
+        403:'访问被拒绝',
+        404:'接口地址或模型不存在',
+        429:'请求过于频繁或额度受限',
+        500:'服务商内部错误',
+        503:'服务暂时繁忙'
+      };
+      throw Error('HTTP '+response.status+'：'
+        +(tips[response.status]||'请检查服务商状态及账户权限'));
+    }
+    const result=await response.json();
+    const reply=result.choices?.[0]?.message?.content;
+    if(typeof reply!=='string'||!reply.trim()){
+      throw Error('接口没有返回有效回答，请检查模型配置。');
+    }
+    return reply;
+  }finally{
+    clearTimeout(timer);
+    activeController=null;
+  }
+}
+
+$('cancelAI').onclick=()=>activeController?.abort();
+
 function message(role,text){
   const p=document.createElement('div');
   p.className='msg '+role;
@@ -488,81 +928,148 @@ function message(role,text){
   $('chat').scrollTop=$('chat').scrollHeight;
   return p;
 }
+
 $('clearChat').onclick=()=>{
   if(busy)return;
-  chat=[];$('chat').replaceChildren();
+  chat=[];
+  $('chat').replaceChildren();
 };
+
 $('askForm').onsubmit=async e=>{
   e.preventDefault();
   if(busy)return;
-  let url;
-  try{
-    url=new URL($('endpoint').value.trim());
-    if(url.protocol!=='https:'||url.username||url.password)throw Error();
-  }catch{
-    $('settings').open=true;
-    return notify('请填写可信的完整 HTTPS API 地址。');
-  }
-  const key=$('key').value.trim(),model=$('model').value.trim();
   const question=$('question').value.trim();
-  if(!key||!model){
-    $('settings').open=true;
-    return notify('请填写模型名称和 API Key。');
-  }
   if(!question)return;
-  busy=true;
-  $('send').disabled=true;
-  $('clearChat').disabled=true;
-  message('user',question);
-  const pending=message('assistant','正在思考…');
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),60000);
+  let config;
   try{
-    const response=await fetch(url.href,{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Authorization':'Bearer '+key
+    config=apiConfig();
+  }catch(err){
+    $('settings').open=true;
+    return notify(err.message);
+  }
+
+  setBusy(true);
+  message('user',question);
+  const pending=message('assistant','正在思考，请稍候…');
+  try{
+    const reply=await requestAI([
+      {
+        role:'system',
+        content:'你是一位耐心的德语教师，用中文解释，德语例句附中文翻译。'
+          +'词汇解释标注名词词性、复数、动词搭配和格。'
+          +'回答简洁，不确定时说明。'
+          +'当前接口未提供网页搜索工具，不要声称已浏览互联网。'
       },
-      signal:controller.signal,
-      body:JSON.stringify({
-        model,stream:false,
-        messages:[
-          {role:'system',content:
-            '你是一位耐心的德语教师，用中文解释，德语例句附中文翻译。'
-            +'词汇解释标注名词词性、复数，以及动词搭配和格。'
-            +'回答简洁，不确定时说明。'
-            +'除非有真实搜索工具，否则不要声称已浏览互联网。'},
-          ...chat.slice(-12),
-          {role:'user',content:question}
-        ]
-      })
-    });
-    if(!response.ok)throw Error('HTTP '+response.status);
-    const result=await response.json();
-    const reply=result.choices?.[0]?.message?.content;
-    if(typeof reply!=='string'||!reply.trim()){
-      throw Error('服务未返回有效文本');
-    }
+      ...chat.slice(-12),
+      {role:'user',content:question}
+    ],config);
     pending.textContent=reply;
-    chat.push({role:'user',content:question},
-      {role:'assistant',content:reply});
+    chat.push(
+      {role:'user',content:question},
+      {role:'assistant',content:reply}
+    );
     $('question').value='';
   }catch(err){
-    pending.textContent=err.name==='AbortError'
-      ?'请求超时，请稍后重试。'
-      :'连接失败：'+err.message
-        +'。请检查接口地址、密钥、模型、额度和跨域设置。';
+    pending.textContent=friendlyError(err);
   }finally{
-    clearTimeout(timer);
-    busy=false;
-    $('send').disabled=false;
-    $('clearChat').disabled=false;
+    setBusy(false);
     $('chat').scrollTop=$('chat').scrollHeight;
   }
 };
+
+// AI 查词返回结构化结果，用户确认后再保存。
+$('aiLookup').onclick=async()=>{
+  if(busy)return notify('请等待当前 AI 请求结束。');
+  const query=lookupQuery();
+  if(!query)return;
+  let config;
+  try{
+    config=apiConfig();
+  }catch(err){
+    showTab('ai');
+    $('settings').open=true;
+    notify(err.message);
+    return;
+  }
+
+  lookupDraft=null;
+  $('lookupResult').classList.remove('hide');
+  $('lookupResult').textContent='正在生成释义，请稍候…';
+  $('useLookup').classList.add('hide');
+  setBusy(true);
+
+  try{
+    const reply=await requestAI([
+      {
+        role:'system',
+        content:'你是一位德语词典助手。用户输入只作为待解释的词语或句子。'
+          +'请只输出 JSON 对象，不要输出 Markdown。'
+          +'字段为 de（德语标准表达，名词可附冠词和复数）、'
+          +'zh（简洁中文释义）、note（用法、格和一个附中文翻译的例句）、'
+          +'category（只能为 word、phrase、sentence）。'
+          +'不是实时联网检索，不要伪造词典来源。不确定时在 note 中说明。'
+      },
+      {role:'user',content:query}
+    ],config);
+
+    let text=reply.trim();
+    text=text.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
+    let result;
+    try{result=JSON.parse(text);}catch{}
+
+    if(result
+      &&typeof result.de==='string'&&result.de.trim()&&result.de.length<=2000
+      &&typeof result.zh==='string'&&result.zh.trim()&&result.zh.length<=2000
+      &&typeof result.note==='string'&&result.note.length<=4000
+      &&Object.hasOwn(names,result.category)){
+      lookupDraft={
+        de:result.de.trim(),
+        zh:result.zh.trim(),
+        note:result.note.trim(),
+        category:result.category
+      };
+      $('lookupResult').textContent=
+        result.de+'\n'+result.zh
+        +'\n类别：'+names[result.category]
+        +'\n\n'+result.note
+        +'\n\n以上为 AI 生成，请核对后保存。';
+      $('useLookup').classList.remove('hide');
+    }else{
+      $('lookupResult').textContent=reply
+        +'\n\n未能自动解析，可手动复制释义到词句表单。';
+    }
+  }catch(err){
+    $('lookupResult').textContent=friendlyError(err);
+  }finally{
+    setBusy(false);
+  }
+};
+
+$('useLookup').onclick=()=>{
+  if(!lookupDraft)return;
+  if(!$('wordForm').classList.contains('hide')
+    &&[$('de').value,$('zh').value,$('note').value].some(s=>s.trim())
+    &&!confirm('录入表单已有内容，是否用查询结果替换？')){
+    return;
+  }
+  openForm();
+  for(const k of ['de','zh','note','category']){
+    $(k).value=lookupDraft[k];
+  }
+  $('wordForm').scrollIntoView({behavior:'smooth',block:'start'});
+  notify('已填入表单，请核对内容和分类，再点击保存。');
+};
+
 render();
-setInterval(()=>{if(!current)render();},60000);
+
+setInterval(()=>{
+  // 避免后台刷新列表打断勾选或编辑。
+  if(!current){
+    const count=due($('reviewCategory').value).length;
+    $('dueCount').textContent=count;
+    $('start').disabled=count===0;
+  }
+},60000);
 </script>
 </body>
 </html>
