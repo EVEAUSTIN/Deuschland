@@ -1,10 +1,10 @@
 # Wort · 德语学习
 
-你好！这里是Eve.Austin，本体是一只夜鹭！Deuschland Wort是我用Codex搓的德语单词学习网站，支持词句收藏、间隔复习、随机练习和 AI 辅助学习。本网站适用于“不依赖课本教材、想按照自己的学习进度复习单词”的宝贝们！
+你好！这里是Eve.Austin，本体是一只夜鹭！Deutschland Wort是我用Codex搓的德语单词学习网站，支持词句收藏、间隔复习、随机练习和 AI 辅助学习。本网站适用于“不依赖课本教材、想按照自己的学习进度复习单词”的宝贝们！
 
 ## 在线使用
 
-https://eveaustin.github.io/Deuschland/
+https://eveaustin.github.io/Deutschland/
 
 无需注册 GitHub，直接用浏览器打开即可。
 
