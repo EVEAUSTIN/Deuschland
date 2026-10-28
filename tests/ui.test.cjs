@@ -31,7 +31,7 @@ function config(w){w.document.getElementById('apiKey').value='test-only-key';}
 function reply(text){return {ok:true,json:async()=>({choices:[{message:{content:text}}]})};}
 test('lookup edits preserve Chinese, examples, classification and date before saving',async t=>{
  const w=await dom(t),$=id=>w.document.getElementById(id);config(w);
- w.fetch=async()=>reply(JSON.stringify({de:'eine (Artikel)',zh:'一个',note:'eine Frau — 一位女士',category:'word'}));
+ w.fetch=async()=>reply(JSON.stringify({de:'eine (Artikel)',zh:'一个',note:'eine Frau — 一位女士',category:'word',pos:'article',singular:'',plural:'',nounKind:'regular'}));
  $('lookupText').value='eine';await $('lookupForm').onsubmit({preventDefault(){}});
  $('lookupText').value='eine';$('lookupText').dispatchEvent(new w.Event('input'));
  assert.equal($('lookupZh').value,'一个');assert.equal($('lookupNote').value,'eine Frau — 一位女士');
@@ -45,7 +45,7 @@ test('an AI result cannot overwrite a draft edited while the request is pending'
  $('lookupText').value='Hallo';
  const running=$('lookupForm').onsubmit({preventDefault(){}});
  $('lookupZh').value='我正在修改的释义';$('lookupZh').dispatchEvent(new w.Event('input'));
- resolve(reply(JSON.stringify({de:'Hallo',zh:'你好',note:'例句',category:'word'})));
+ resolve(reply(JSON.stringify({de:'Hallo',zh:'你好',note:'例句',category:'word',pos:'interjection',singular:'',plural:'',nounKind:'regular'})));
  await running;
  assert.equal($('lookupZh').value,'我正在修改的释义');
  assert(!$('applyLookupResponse').classList.contains('hide'));
@@ -144,4 +144,108 @@ test('empty and truncated library states are visible, and quick grammar prompt d
  const words=Array.from({length:600},(_,i)=>({...word('id'+i,'Wort '+i,'含义'+i),note:'很长的例句'.repeat(100)}));
  w.localStorage.setItem('wort-simple-v1',JSON.stringify({words,history:[]}));w.updateLibraryContextStatus();
  assert($('libraryContextStatus').textContent.includes('未附带'));assert($('libraryContextStatus').textContent.includes('截短'));
+});
+function metadataNoun(id='noun'){
+ return {...word(id,'das Buch','书'),pos:'noun',nounKind:'regular',singular:'Buch',plural:'Bücher'};
+}
+test('manual entry requires a part of speech and stores noun singular/plural forms',async t=>{
+ const w=await dom(t),$=id=>w.document.getElementById(id);
+ $('editDe').value='das Buch';$('editZh').value='书';
+ $('wordForm').onsubmit({preventDefault(){}});
+ assert.equal(w.eval('data.words.length'),0);
+ $('editPos').value='noun';$('editPos').dispatchEvent(new w.Event('change'));
+ assert(!$('editNounFields').classList.contains('hide'));
+ $('editPlural').value='-er';$('wordForm').onsubmit({preventDefault(){}});
+ assert.equal(w.eval('data.words.length'),0);
+ $('editPlural').value='Bücher';$('wordForm').onsubmit({preventDefault(){}});
+ const saved=JSON.parse(w.localStorage.getItem('wort-simple-v1')).words[0];
+ assert.equal(saved.pos,'noun');assert.equal(saved.singular,'Buch');assert.equal(saved.plural,'Bücher');
+});
+test('AI lookup fills editable noun metadata and saving retains the edited plural',async t=>{
+ const w=await dom(t),$=id=>w.document.getElementById(id);config(w);
+ w.fetch=async()=>reply(JSON.stringify({...metadataNoun(),note:'ein Wort',de:'das Wort'}));
+ $('lookupText').value='Wort';await $('lookupForm').onsubmit({preventDefault(){}});
+ assert.equal($('lookupPos').value,'noun');assert.equal($('lookupPlural').value,'Bücher');
+ $('lookupSingular').value='Wort';$('lookupPlural').value='Wörter; Worte';$('collectLookup').click();
+ const saved=JSON.parse(w.localStorage.getItem('wort-simple-v1')).words[0];
+ assert.equal(saved.singular,'Wort');assert.equal(saved.plural,'Wörter; Worte');
+});
+test('noun practice asks both directions, excludes missing/special forms, and persists errors/draws',async t=>{
+ const w=await dom(t,[metadataNoun(),{...word('verb','lesen','读'),pos:'verb'},
+  {...metadataNoun('mass'),nounKind:'uncountable',singular:'Milch',plural:'无复数'},
+  {...metadataNoun('plural-only'),nounKind:'pluralOnly',singular:'',plural:'Eltern'}]);
+ const $=id=>w.document.getElementById(id);
+ $('practiceMode').value='noun';w.eval('randomInt=max=>max>1?1:0');w.beginSession('random');
+ assert.equal(w.eval('round.totalWords'),1);assert.equal(w.eval('task.mode'),'plural');
+ assert.equal($('questionText').textContent,'Buch');
+ $('answer').value='Bucher';await $('answerForm').onsubmit({preventDefault(){}});w.grade(false);
+ assert.equal(w.eval('data.words[0].nounStats.draws'),1);
+ $('answer').value='Bücher';await $('answerForm').onsubmit({preventDefault(){}});w.grade(true);
+ assert.equal(w.eval('lastSummary.finished'),true);
+ let saved=JSON.parse(w.localStorage.getItem('wort-simple-v1')).words[0];
+ assert.equal(saved.nounStats.errors,1);assert.equal(saved.nounStats.attempts,2);assert.equal(saved.nounStats.draws,1);
+ w.eval('randomInt=()=>0');w.beginSession('random');
+ assert.equal(w.eval('task.mode'),'singular');assert.equal($('questionText').textContent,'Bücher');
+ $('answer').value='das Buch';await $('answerForm').onsubmit({preventDefault(){}});w.grade(true);
+ saved=JSON.parse(w.localStorage.getItem('wort-simple-v1')).words[0];assert.equal(saved.nounStats.draws,2);
+});
+test('one-time metadata migration saves partial successes, retries only missing words and disappears permanently',async t=>{
+ const w=await dom(t,[word('noun','das Buch','书'),word('verb','lesen','读')]),$=id=>w.document.getElementById(id);config(w);
+ let calls=0,requested=[];
+ w.fetch=async(_url,options)=>{
+  const messages=JSON.parse(options.body).messages;
+  const batch=JSON.parse(messages.at(-1).content).entries;requested.push(batch.map(x=>x.de));calls++;
+  const entries=batch.map(item=>item.de==='das Buch'
+   ?{key:item.key,pos:'noun',nounKind:'regular',singular:'Buch',plural:'Bücher'}
+   :{key:item.key,pos:calls===1?'':'verb',singular:'',plural:'',nounKind:'regular'});
+  return reply(JSON.stringify({entries}));
+ };
+ w.page('words');assert(!$('grammarMigrationPanel').classList.contains('hide'));
+ await $('updateGrammar').onclick();
+ let stored=JSON.parse(w.localStorage.getItem('wort-simple-v1'));
+ assert.equal(stored.words[0].plural,'Bücher');assert.equal(stored.words[1].pos,'');
+ assert.equal(w.localStorage.getItem('wort-grammar-migration-v1'),null);
+ assert(!$('grammarMigrationPanel').classList.contains('hide'));
+ await $('updateGrammar').onclick();
+ assert.deepEqual(requested[1],['lesen']);
+ stored=JSON.parse(w.localStorage.getItem('wort-simple-v1'));
+ assert.equal(stored.words[0].note,'例句');assert.equal(stored.words[0].zh,'书');assert.equal(stored.words[0].de,'das Buch');
+ assert.equal(stored.words[0].dz.due,0);assert.equal(stored.grammarMigrationDone,true);
+ assert.equal(w.localStorage.getItem('wort-grammar-migration-v1'),'done');
+ assert($('grammarMigrationPanel').classList.contains('hide'));
+ const restarted=await dom(t,stored.words,{'wort-grammar-migration-v1':'done'});restarted.page('words');
+ assert(restarted.document.getElementById('grammarMigrationPanel').classList.contains('hide'));
+});
+test('migration cannot overwrite concurrent edits, and failed/cancelled requests never hide the button',async t=>{
+ const w=await dom(t,[word('noun','das Buch','书')]),$=id=>w.document.getElementById(id);config(w);w.page('words');let resolve;
+ w.fetch=()=>new Promise(r=>resolve=r);
+ const running=$('updateGrammar').onclick();
+ const edited={...word('noun','die Katze','猫'),note:'用户新写的例句'};
+ w.localStorage.setItem('wort-simple-v1',JSON.stringify({words:[edited],history:[]}));
+ resolve(reply(JSON.stringify({entries:[{key:'0',pos:'noun',singular:'Buch',plural:'Bücher',nounKind:'regular'}]})));
+ await running;
+ assert.equal(w.eval('data.words[0].de'),'die Katze');assert.equal(w.eval('data.words[0].pos'),'');
+ assert.equal(w.localStorage.getItem('wort-grammar-migration-v1'),null);
+ w.fetch=async()=>{throw Error('offline')};await $('updateGrammar').onclick();
+ assert.equal(w.localStorage.getItem('wort-grammar-migration-v1'),null);
+ w.fetch=(_url,args)=>new Promise((_resolve,reject)=>args.signal.addEventListener('abort',()=>{
+  const error=Error('Stopped');error.name='AbortError';reject(error);
+ }));
+ const cancelled=$('updateGrammar').onclick();$('stopGrammar').click();await cancelled;
+ assert.equal(w.localStorage.getItem('wort-grammar-migration-v1'),null);
+ assert($('grammarMigrationStatus').textContent.includes('已暂停'));
+});
+test('legacy data normalises without inventing POS; new metadata/stats and migration marker survive import normalisation',async t=>{
+ const w=await dom(t,[word('legacy')]);
+ assert.equal(w.eval('data.words[0].pos'),'');assert.equal(w.eval('data.words[0].plural'),'');
+ const raw={words:[{...metadataNoun(),nounStats:{draws:5,attempts:6,errors:2,recent:[false,true]}}],history:[],grammarMigrationDone:true};
+ const migrated=w.normalizeData(raw);
+ assert.equal(migrated.words[0].plural,'Bücher');assert.equal(migrated.words[0].nounStats.draws,5);
+ assert.equal(migrated.grammarMigrationDone,true);
+});
+test('noun rounds do not always take the whole small library, so weighting can change frequency',async t=>{
+ const w=await dom(t,[metadataNoun('a'),metadataNoun('b'),metadataNoun('c')]);
+ w.document.getElementById('practiceMode').value='noun';w.beginSession('random');
+ assert.equal(w.eval('round.totalWords'),1);
+ assert.equal(w.eval('round.totalTargets'),1);
 });

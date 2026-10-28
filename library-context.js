@@ -30,6 +30,8 @@
    const entry={de:word.de,zh:word.zh,category:word.category||'word',
     date:word.addedOn||null,level:((word.dz?.level||0)+(word.zd?.level||0))/2,
     mistakes:word.mistakes||0};
+   if(word.pos)entry.pos=word.pos;
+   if(word.pos==='noun'){entry.singular=word.singular||'';entry.plural=word.plural||'';entry.nounKind=word.nounKind||'regular';}
    if(note){entry.note=note.slice(0,NOTE_LIMIT);if(note.length>NOTE_LIMIT)entry.noteTruncated=true;}
    const length=JSON.stringify(entry).length+1;
    if(used+length>maxCharacters)continue;

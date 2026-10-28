@@ -162,3 +162,5 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
 
 .library-sharing{padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--soft);margin:15px 0}
 .library-sharing p{font-size:13px;margin:7px 0}
+
+.noun-forms{color:var(--green);font-size:13px;background:var(--soft);padding:7px 10px;border-radius:8px}

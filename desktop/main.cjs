@@ -138,7 +138,7 @@ function registerUpdates(){
  if(!smoke){updateTimer=setTimeout(check,8000);updateInterval=setInterval(check,4*60*60*1000);}
 }
 function registerProtocol(){
- const allowed=new Set(['/index.html','/app.js','/styles.css','/learning.js','/library-context.js','/vendor/marked.umd.js','/vendor/purify.min.js']);
+ const allowed=new Set(['/index.html','/app.js','/styles.css','/learning.js','/grammar.js','/library-context.js','/vendor/marked.umd.js','/vendor/purify.min.js']);
  protocol.handle('wort',async request=>{
   const url=new URL(request.url),pathname=url.pathname==='/'?'/index.html':url.pathname;
   if(url.host!=='app'||!allowed.has(pathname))return new Response('Not found',{status:404});
@@ -169,6 +169,7 @@ else{
       if(desktop.storage.getItem('wort-ai-judge')!=='true')throw Error('Disk storage failed');
       const node=document.createElement('div');renderMarkdown(node,'**成功**\\n\\n| A | B |\\n|---|---|\\n|1|2|');
       if(!node.querySelector('table')||!node.querySelector('strong'))throw Error('Offline Markdown failed');
+      if(!window.WortGrammar||!WortGrammar.POS.noun)throw Error('Offline noun grammar module failed');
       if(!window.WortLibraryContext||WortLibraryContext.build([]).total!==0)throw Error('Offline word-library context failed');
       desktop.storage.setItem('wort-ai-library-enabled-v1','false');
       if(desktop.storage.getItem('wort-ai-library-enabled-v1')!=='false')throw Error('Library preference persistence failed');

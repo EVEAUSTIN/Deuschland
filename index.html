@@ -56,6 +56,7 @@
 <option value="zd">中译德默写</option>
 <option value="article">冠词匹配</option>
 <option value="choice">释义选择</option>
+<option value="noun">名词练习：单数 ↔ 复数</option>
 </select>
 </div>
 </div>
@@ -66,13 +67,14 @@
 <div class="row" style="margin-top:20px">
 <button id="startReview" class="primary">到期复习</button>
 <button id="startRandom">随机练习</button>
+<button id="startNouns">名词练习</button>
 <button id="showLastSummary">上次总结</button>
 <button id="demo">载入示例</button>
 </div>
 <p class="muted"><small>
 每轮最多 20 条；混合模式每条随机安排 1～2 种适用题型。
 错题重新入队，指定题型全部通过即完成。
-到期复习更新计划；随机练习只记录成绩。
+到期复习更新计划；随机练习只记录成绩。名词练习按出现次数和最近正确率加权，每轮取约 60% 的候选词（最多 20 条），让小词库也能体现概率差异。
 </small></p>
 </div>
 
@@ -143,6 +145,12 @@
 <button id="addWord" class="primary">＋ 添加词句</button>
 </div>
 
+<div id="grammarMigrationPanel" class="card hide">
+<h2>为已有词库补全词性</h2>
+<p id="grammarMigrationStatus" class="muted" role="status" aria-live="polite"></p>
+<div class="row"><button id="updateGrammar" class="primary">更新词性</button><button id="stopGrammar" class="hide">暂停</button></div>
+<small>使用已配置的 AI，分批补全词性与名词完整单复数，可能计费。每批成功结果立即保存，失败可继续；不改原释义、例句和复习进度。全部成功后，此按钮及提示永久消失。AI 结果可在词条编辑中核对修改。</small>
+</div>
 <details id="lookupPanel" class="card">
 <summary>搜词，直接加入词句本</summary>
 <form id="lookupForm">
@@ -180,6 +188,14 @@
 <input id="lookupDate" type="date">
 </div>
 </div>
+<div class="grid">
+<div><label for="lookupPos">词性 *</label><select id="lookupPos"><option value="">请选择词性</option></select></div>
+<div id="lookupNounKindField" class="hide"><label for="lookupNounKind">名词类型</label><select id="lookupNounKind"></select></div>
+</div>
+<div id="lookupNounFields" class="grid hide">
+<div><label for="lookupSingular">单数原形（不带冠词，留空按德语栏识别）</label><input id="lookupSingular" maxlength="2000" placeholder="Buch"></div>
+<div><label for="lookupPlural">完整复数形式 *</label><input id="lookupPlural" maxlength="2000" placeholder="Bücher；多个形式可用分号分隔"></div>
+</div>
 <div class="row" style="margin-top:15px">
 <button id="collectLookup" class="primary">＋ 直接加入词句本</button>
 <button id="stopLookup" class="hide">停止请求</button>
@@ -214,6 +230,14 @@
 <label for="editZh">中文释义 *</label>
 <textarea id="editZh" required maxlength="2000"></textarea>
 </div>
+</div>
+<div class="grid">
+<div><label for="editPos">词性 *</label><select id="editPos"><option value="">请选择词性</option></select></div>
+<div id="editNounKindField" class="hide"><label for="editNounKind">名词类型</label><select id="editNounKind"></select></div>
+</div>
+<div id="editNounFields" class="grid hide">
+<div><label for="editSingular">单数原形（不带冠词，留空按德语栏识别）</label><input id="editSingular" maxlength="2000" placeholder="Buch"></div>
+<div><label for="editPlural">完整复数形式 *</label><input id="editPlural" maxlength="2000" placeholder="Bücher；多个形式可用分号分隔"></div>
 </div>
 <label for="editAliases">其他中文近义答案，用分号分隔</label>
 <input id="editAliases" maxlength="2000">
@@ -419,6 +443,7 @@ API 可能计费，接口必须允许浏览器跨域。
 <script defer src="vendor/marked.umd.js"></script>
 <script defer src="vendor/purify.min.js"></script>
 <script defer src="learning.js"></script>
+<script defer src="grammar.js"></script>
 <script defer src="library-context.js"></script>
 <script defer src="app.js"></script>
 </body>
