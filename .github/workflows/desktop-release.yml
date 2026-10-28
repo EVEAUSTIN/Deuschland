@@ -1,0 +1,99 @@
+name: Build and release Wort for Windows
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'app.js'
+      - 'styles.css'
+      - 'learning.js'
+      - 'vendor/**'
+      - 'desktop/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/desktop-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wort-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run vendor
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - run: xvfb-run -a npm run test:desktop
+
+  windows:
+    needs: validate
+    runs-on: windows-latest
+    timeout-minutes: 35
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run vendor
+      - run: npm test
+      - run: npm run test:desktop
+      - name: Set a monotonic release version
+        shell: pwsh
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          $version = "1.1.$env:RUN_NUMBER"
+          npm version $version --no-git-tag-version
+          "WORT_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Build Windows installer and update metadata
+        run: npm run build:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Validate release files and updater checksum
+        shell: pwsh
+        run: |
+          $installer = "dist/Wort-Setup-$env:WORT_VERSION.exe"
+          if (!(Test-Path $installer)) { throw "Installer missing" }
+          if (!(Test-Path "dist/latest.yml")) { throw "Update metadata missing" }
+          if (!(Test-Path "$installer.blockmap")) { throw "Update blockmap missing" }
+          $expected = [Convert]::ToBase64String([System.Security.Cryptography.SHA512]::HashData([System.IO.File]::ReadAllBytes((Resolve-Path $installer))))
+          $metadata = Get-Content "dist/latest.yml" -Raw
+          if (!$metadata.Contains($expected)) { throw "Updater checksum does not match installer" }
+      - name: Publish executable and in-app update files
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "v$env:WORT_VERSION"
+          $notes = @"
+          Wort Windows x64 installer, built from commit ${{ github.sha }}.
+
+          Download Wort-Setup-$env:WORT_VERSION.exe for the first installation.
+          Existing installations can check, download and install this release inside Wort (AI > desktop updates).
+          Your local learning database is kept outside the installation folder and is preserved by updates.
+          Browser users: export your words JSON first, then import it in the desktop app. API keys are not included in that backup.
+
+          This community build is not code-signed. Windows may display an unknown-publisher warning. Verify the repository and release source before installation.
+          "@
+          $notes | Set-Content -Path release-notes.md -Encoding utf8
+          gh release create $tag "dist/Wort-Setup-$env:WORT_VERSION.exe" "dist/Wort-Setup-$env:WORT_VERSION.exe.blockmap" "dist/latest.yml" --repo "${{ github.repository }}" --target "${{ github.sha }}" --title "Wort $env:WORT_VERSION" --notes-file release-notes.md --latest
