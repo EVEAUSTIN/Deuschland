@@ -1703,6 +1703,9 @@ function initialiseDesktop(){
  $('appVersion').textContent=desktop?desktop.info.version:WEB_VERSION;
  if(!desktop)return;
  $('desktopPanel').classList.remove('hide');
+ document.querySelector('label[for="apiKey"]').textContent='API Key（系统加密后保存在本机）';
+ const notice=$('settingsPanel').querySelector('small:last-child');
+ if(notice)notice.textContent='密钥由 Windows 用户级系统加密保存，不会进入词句备份或 GitHub。AI 通过桌面网络模块发送 HTTPS 请求，不受浏览器跨域限制，服务商可能计费。';
  $('desktopLocation').textContent='版本 '+desktop.info.version+' · 本地数据：'+desktop.info.dataPath;
  $('openDataFolder').onclick=()=>desktop.openDataFolder();
  $('checkUpdate').onclick=()=>desktop.checkUpdate();

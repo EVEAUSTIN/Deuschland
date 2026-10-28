@@ -162,12 +162,21 @@ else{
      const report=await mainWindow.webContents.executeJavaScript(`(async()=>{
       const desktop=window.wortDesktop;
       if(!desktop||typeof require!=='undefined')throw Error('Isolation/preload failed');
+      const restored=desktop.storage.getItem('wort-ai-judge')==='true';
       desktop.storage.setItem('wort-ai-judge','true');
       if(desktop.storage.getItem('wort-ai-judge')!=='true')throw Error('Disk storage failed');
       const node=document.createElement('div');renderMarkdown(node,'**成功**\\n\\n| A | B |\\n|---|---|\\n|1|2|');
       if(!node.querySelector('table')||!node.querySelector('strong'))throw Error('Offline Markdown failed');
-      return {version:desktop.info.version,storage:true,markdown:true,isolation:true};
+      return {version:desktop.info.version,restored,storage:true,markdown:true,isolation:true};
      })()`);
+     if(process.platform==='win32'){
+      const secret='smoke-key-not-a-real-credential';
+      store.set('wort-api-key-v1',JSON.stringify({key:secret}));
+      if(JSON.parse(store.get('wort-api-key-v1')).key!==secret)throw Error('Windows key decryption failed');
+      const disk=require('node:fs').readFileSync(store.file,'utf8');
+      if(disk.includes(secret))throw Error('Key was written as plaintext');
+      report.windowsKeyEncryption=true;
+     }
      console.log('WORT_SMOKE_PASS '+JSON.stringify(report));app.exit(0);
     }catch(error){console.error(error.message);app.exit(1);}
    });

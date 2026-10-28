@@ -64,7 +64,7 @@ Windows 的 `%APPDATA%/Wort/wort-store.json` 存储学习数据、设置与上�
 
 密钥使用 Electron safeStorage（Windows 用户级系统加密）保存，不以明文写入数据库。加密不可用时拒绝明文落盘。加密密钥通常不能移到其他 Windows 账户或电脑解密；跨设备迁移请导出词句 JSON，再重新填写密钥。自动数据库备份可能包含加密后的密钥，勿公开上传数据文件夹。
 
-若数据库损坏，程序不会覆盖原文件。关闭程序，先复制整个数据文件夹保存，再从 `backups` 选择合适文件恢复为 `wort-store.json`；或重新启动后导入手动导出的词句 JSON。
+若数据库损坏，程序不会覆盖原文件。关闭程序，先复制整个数据文件夹保存，再从 `backups` 选择合适文件恢复为 `wort-store.json`；若没有自动备份，先将损坏文件改名保留，再重新启动并导入手动导出的词句 JSON。
 
 ### 应用内更新
 
@@ -86,7 +86,7 @@ npm start
 
 浏览器测试先安装 Playwright Chromium：`npx playwright install chromium`；也可通过 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` 指定已安装的 Chromium。`npm run test:desktop` 会实际启动 Electron、验证隔离桥接与本地存储，并重启检查数据持久化。
 
-主分支涉及应用文件的提交会触发 `.github/workflows/desktop-release.yml`：Linux 验证、Windows 验证与 NSIS 安装器构建，之后自动发布 `1.1.<工作流运行序号>` 版本。版本号单调递增；工作流重跑同一版本前应检查是否已有对应 Release。也可通过 GitHub Actions 的 Run workflow 手动发布。仓库必须允许 Actions，发布任务需要内置 GITHUB_TOKEN 的 contents:write 权限，不需要把个人密钥写入源码。
+主分支涉及应用文件的提交会触发 `.github/workflows/desktop-release.yml`：Linux 验证、Windows 验证与 NSIS 安装器构建，并再次启动打包后的 Wort.exe 检查数据持久化和系统密钥加密，之后自动发布 `1.1.<工作流运行序号>` 版本。版本号单调递增；工作流重跑同一版本前应检查是否已有对应 Release。也可通过 GitHub Actions 的 Run workflow 手动发布。仓库必须允许 Actions，发布任务需要内置 GITHUB_TOKEN 的 contents:write 权限，不需要把个人密钥写入源码。
 
 GitHub Pages 仍可直接从 main 根目录部署；Markdown 依赖文件和许可证已随源码提交，无需 CDN。
 
