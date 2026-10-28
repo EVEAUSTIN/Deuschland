@@ -2,7 +2,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const KEYS=new Set(['wort-simple-v1','wort-data-v1','wort-last-summary-v1',
- 'wort-ai-settings-v2','wort-api-key-v1','wort-ai-judge','wort-group-dates']);
+ 'wort-ai-settings-v2','wort-api-key-v1','wort-ai-judge','wort-group-dates','wort-ai-library-enabled-v1']);
 const SECRET='wort-api-key-v1';
 class LocalStore{
  constructor(directory,encryption){

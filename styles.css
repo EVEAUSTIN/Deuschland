@@ -159,3 +159,6 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
 .version{font:11px system-ui;letter-spacing:0;margin-left:9px;color:var(--muted);vertical-align:middle}
 .markdown input{width:auto}
 #desktopPanel{margin-top:0}
+
+.library-sharing{padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--soft);margin:15px 0}
+.library-sharing p{font-size:13px;margin:7px 0}

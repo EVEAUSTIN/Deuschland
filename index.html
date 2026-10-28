@@ -374,6 +374,12 @@ API 可能计费，接口必须允许浏览器跨域。
 <h2>学习助手</h2><button id="clearChat">清空对话</button>
 </div>
 <div id="chat" class="chat" role="log" aria-live="polite"></div>
+<div class="library-sharing">
+<label class="inline"><input id="shareLibrary" type="checkbox" checked>让 AI 参考我的词库</label>
+<p id="libraryContextStatus" class="muted" role="status" aria-live="polite"></p>
+<small>开启后，词句、释义、例句和复习程度会随每次提问发送给已配置的 AI 服务，可能增加用量；不上传到 GitHub。只供出题与回答参考，不会自动修改词句本。关闭后不再附带新快照；如需排除此前对话中的词汇，请清空对话。</small>
+<div class="row" style="margin-top:10px"><button id="grammarFromLibrary" type="button">用我的词库练语法</button></div>
+</div>
 <form id="chatForm">
 <label for="chatQuestion">你的问题</label>
 <textarea id="chatQuestion" required maxlength="6000"></textarea>
@@ -413,6 +419,7 @@ API 可能计费，接口必须允许浏览器跨域。
 <script defer src="vendor/marked.umd.js"></script>
 <script defer src="vendor/purify.min.js"></script>
 <script defer src="learning.js"></script>
+<script defer src="library-context.js"></script>
 <script defer src="app.js"></script>
 </body>
 </html>

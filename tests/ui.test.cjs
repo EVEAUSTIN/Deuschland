@@ -6,7 +6,7 @@ const {JSDOM,requestInterceptor,VirtualConsole}=require('jsdom');
 const ROOT=path.resolve(__dirname,'..');
 const word=(id,de='das Buch',zh='书')=>({id,de,zh,note:'例句',category:'word',addedOn:null,
  dz:{level:0,due:0},zd:{level:0,due:0},aliases:'',createdAt:0,order:1,mistakes:0,attempts:0,lastError:0});
-async function dom(t,words=[]){
+async function dom(t,words=[],preferences={}){
  const errors=[];
  const virtualConsole=new VirtualConsole();
  virtualConsole.on('jsdomError',e=>errors.push(e.message));
@@ -18,6 +18,7 @@ async function dom(t,words=[]){
   beforeParse(w){
    w.alert=()=>{};w.confirm=()=>true;w.HTMLElement.prototype.scrollIntoView=()=>{};
    w.localStorage.setItem('wort-simple-v1',JSON.stringify({words,history:[]}));
+   for(const [key,value]of Object.entries(preferences))w.localStorage.setItem(key,value);
   }
  });
  await new Promise((resolve,reject)=>{
@@ -104,4 +105,43 @@ test('new-word review first waits 10 minutes, then uses the next local midnight'
  w.beginSession('review');w.eval('answerLocked=true');w.grade(true);
  assert.equal(w.eval('data.words[0].dz.level'),1);
  assert.equal(w.eval('data.words[0].dz.due'),new Date(2026,9,29).getTime());
+});
+test('chat sends a fresh word-library snapshot each time, not stale snapshots in history',async t=>{
+ const w=await dom(t,[word('first','das Buch','书')]),$=id=>w.document.getElementById(id);config(w);
+ const requests=[];
+ w.fetch=async(_url,options)=>{requests.push(JSON.parse(options.body));return reply('请翻译：Ich lese ein Buch.');};
+ $('chatQuestion').value='用我的词库出语法题';await $('chatForm').onsubmit({preventDefault(){}});
+ let messages=requests[0].messages;
+ assert(messages.some(message=>message.content.includes('"de":"das Buch"')));
+ assert(!w.eval('JSON.stringify(chat)').includes('最新词库快照'));
+ // Simulate another window editing/deleting/importing while the old in-memory library is unchanged.
+ w.localStorage.setItem('wort-simple-v1',JSON.stringify({words:[word('second','die Katze','猫')],history:[]}));
+ $('chatQuestion').value='现在用我最新的词库出题';await $('chatForm').onsubmit({preventDefault(){}});
+ const snapshots=requests[1].messages.filter(message=>message.content.includes('以下为本次请求的最新词库快照 JSON'));
+ assert.equal(snapshots.length,1);assert(snapshots[0].content.includes('die Katze'));
+ assert(!snapshots[0].content.includes('das Buch'));
+ assert($('libraryContextStatus').textContent.includes('1 条'));
+ assert.equal(requests[1].messages.at(-1).content,'现在用我最新的词库出题');
+});
+test('turning library sharing off omits snapshots and persists across restarts',async t=>{
+ const w=await dom(t,[word('first','das Buch','书')]),$=id=>w.document.getElementById(id);config(w);
+ let request;
+ w.fetch=async(_url,options)=>{request=JSON.parse(options.body);return reply('普通语法回答');};
+ $('shareLibrary').checked=false;$('shareLibrary').dispatchEvent(new w.Event('change'));
+ assert.equal(w.localStorage.getItem('wort-ai-library-enabled-v1'),'false');
+ $('chatQuestion').value='解释第三格';await $('chatForm').onsubmit({preventDefault(){}});
+ assert(!request.messages.some(message=>message.content.includes('"de":"das Buch"')));
+ assert(!request.messages.some(message=>message.content.includes('以下为本次请求的最新词库快照 JSON')));
+ assert($('libraryContextStatus').textContent.includes('已关闭'));
+ const restarted=await dom(t,[word('first')],{'wort-ai-library-enabled-v1':'false'});
+ assert.equal(restarted.document.getElementById('shareLibrary').checked,false);
+});
+test('empty and truncated library states are visible, and quick grammar prompt does not auto-send',async t=>{
+ const w=await dom(t),$=id=>w.document.getElementById(id);
+ assert($('libraryContextStatus').textContent.includes('为空'));
+ $('grammarFromLibrary').click();
+ assert($('chatQuestion').value.includes('先出题'));assert.equal($('chat').children.length,0);
+ const words=Array.from({length:600},(_,i)=>({...word('id'+i,'Wort '+i,'含义'+i),note:'很长的例句'.repeat(100)}));
+ w.localStorage.setItem('wort-simple-v1',JSON.stringify({words,history:[]}));w.updateLibraryContextStatus();
+ assert($('libraryContextStatus').textContent.includes('未附带'));assert($('libraryContextStatus').textContent.includes('截短'));
 });

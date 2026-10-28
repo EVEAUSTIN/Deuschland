@@ -22,10 +22,11 @@ const ROOT=path.resolve(__dirname,'..');
    ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{}),
    args:['--no-sandbox']});
   const page=await browser.newPage({viewport:{width:1280,height:900}});
-  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  const errors=[],chatRequests=[];page.on('pageerror',error=>errors.push(error.message));
   await page.route('https://api.deepseek.com/**',route=>{
    const messages=route.request().postDataJSON()?.messages||[];
    const isLookup=messages[0]?.content.includes('词典助手');
+   if(!isLookup)chatRequests.push(messages);
    const content=isLookup?JSON.stringify({de:'eine (Artikel)',zh:'一个',note:'eine Frau — 一位女士',category:'word'}):
     '### 2. `nicht`：否定\n- **Er arbeitet nicht.**\n  - 他不工作。\n\n| 时态 | 构成 | 例句 |\n|---|---|---|\n| **Präsens** | 现在时 | `Ich lese ein Buch.` |\n| Perfekt | haben / sein | 过去的动作 |';
    return route.fulfill({json:{choices:[{message:{content}}]}});
@@ -53,6 +54,12 @@ const ROOT=path.resolve(__dirname,'..');
   await page.click('[data-page="ai"]');
   await page.fill('#chatQuestion','解释时态');await page.click('#sendChat');
   await page.locator('#chat .markdown table').waitFor();
+  assert(chatRequests.at(-1).some(message=>message.content.includes('\"de\":\"eine\"')),'Saved word was not sent to the AI');
+  assert((await page.locator('#libraryContextStatus').textContent()).includes('已包含全部词句'));
+  await page.uncheck('#shareLibrary');
+  await page.fill('#chatQuestion','普通语法问题');await page.click('#sendChat');
+  await page.waitForFunction(()=>!document.getElementById('sendChat').disabled);
+  assert(!chatRequests.at(-1).some(message=>message.content.includes('以下为本次请求的最新词库快照 JSON')));
   fs.mkdirSync(path.join(ROOT,'.test-results'),{recursive:true});
   await page.screenshot({path:path.join(ROOT,'.test-results/markdown-desktop.png'),fullPage:true});
   await page.setViewportSize({width:390,height:844});

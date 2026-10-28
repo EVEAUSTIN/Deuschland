@@ -30,7 +30,7 @@
     "productName": "Wort",
     "asar": true,
     "directories": { "output": "dist" },
-    "files": ["index.html", "app.js", "learning.js", "styles.css", "vendor/**", "desktop/**", "package.json"],
+    "files": ["index.html", "app.js", "learning.js", "library-context.js", "styles.css", "vendor/**", "desktop/**", "package.json"],
     "publish": [{ "provider": "github", "owner": "EVEAUSTIN", "repo": "Deutschland", "releaseType": "release" }],
     "win": { "target": [{ "target": "nsis", "arch": ["x64"] }], "artifactName": "Wort-Setup-${version}.${ext}" },
     "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "deleteAppDataOnUninstall": false, "createDesktopShortcut": true, "shortcutName": "Wort" }

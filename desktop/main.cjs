@@ -138,11 +138,13 @@ function registerUpdates(){
  if(!smoke){updateTimer=setTimeout(check,8000);updateInterval=setInterval(check,4*60*60*1000);}
 }
 function registerProtocol(){
- const allowed=new Set(['/index.html','/app.js','/styles.css','/learning.js','/vendor/marked.umd.js','/vendor/purify.min.js']);
- protocol.handle('wort',request=>{
+ const allowed=new Set(['/index.html','/app.js','/styles.css','/learning.js','/library-context.js','/vendor/marked.umd.js','/vendor/purify.min.js']);
+ protocol.handle('wort',async request=>{
   const url=new URL(request.url),pathname=url.pathname==='/'?'/index.html':url.pathname;
   if(url.host!=='app'||!allowed.has(pathname))return new Response('Not found',{status:404});
-  return net.fetch(pathToFileURL(path.join(ROOT,pathname.slice(1))).href);
+  const response=await net.fetch(pathToFileURL(path.join(ROOT,pathname.slice(1))).href);
+  const headers=new Headers(response.headers);headers.set('Cache-Control','no-store');
+  return new Response(response.body,{status:response.status,headers});
  });
 }
 if(!app.requestSingleInstanceLock())app.quit();
@@ -167,6 +169,9 @@ else{
       if(desktop.storage.getItem('wort-ai-judge')!=='true')throw Error('Disk storage failed');
       const node=document.createElement('div');renderMarkdown(node,'**成功**\\n\\n| A | B |\\n|---|---|\\n|1|2|');
       if(!node.querySelector('table')||!node.querySelector('strong'))throw Error('Offline Markdown failed');
+      if(!window.WortLibraryContext||WortLibraryContext.build([]).total!==0)throw Error('Offline word-library context failed');
+      desktop.storage.setItem('wort-ai-library-enabled-v1','false');
+      if(desktop.storage.getItem('wort-ai-library-enabled-v1')!=='false')throw Error('Library preference persistence failed');
       return {version:desktop.info.version,restored,storage:true,markdown:true,isolation:true};
      })()`);
      if(process.platform==='win32'){
